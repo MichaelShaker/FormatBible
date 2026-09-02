@@ -1,198 +1,243 @@
 <template>
-  <div class="page">
-    <div class="background-glow background-glow-left"></div>
-    <div class="background-glow background-glow-right"></div>
+  <div class="app">
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <p class="brand"><span class="brand-mark" aria-hidden="true">&#8224;</span> Herziene Statenvertaling</p>
+        <p class="masthead-note">Tekst gereedmaken voor leesbaar gebruik</p>
+      </div>
+    </header>
 
-    <div class="container">
-      <header class="hero">
-        <div class="hero-badge">HSV formatter</div>
-        <h1>Bible Text Formatter</h1>
-        <p>
-          Kies een boek, hoofdstuk en verzen, of typ een verwijzing zoals
-          <strong>Handelingen 28:11-31</strong>. De tool haalt de verzen op,
-          maakt nette alinea’s en geeft direct kopieerbare output terug.
-        </p>
-      </header>
-
-      <section class="fetch-card">
-        <div class="fetch-top">
-          <div>
-            <h2>Bijbeltekst kiezen</h2>
-            <p>
-              Selecteer boek, hoofdstuk en versbereik. De tekst verschijnt
-              direct in het inputvak en wordt meteen geformatteerd.
-            </p>
-          </div>
-          <div class="status-pills">
-            <span class="pill">{{ versesCount }} verzen</span>
-            <span class="pill">{{ paragraphsCount }} alinea's</span>
-          </div>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-lede">
+          <h1>Bijbeltekst <em>doorlopend</em> maken</h1>
+          <p>
+            Kies een boek, hoofdstuk en versbereik, of plak ruwe tekst met
+            versnummers. De verzen worden samengevoegd tot alinea’s die lezen als
+            proza, klaar om te kopiëren naar liturgie, studie of leesrooster.
+          </p>
         </div>
 
-        <div class="select-grid">
+        <figure class="hero-quote">
+          <blockquote>
+            Uw woord is een lamp voor mijn voet en een licht op mijn pad.
+          </blockquote>
+          <figcaption>Psalm 119:105</figcaption>
+        </figure>
+      </section>
+
+      <div class="ornament" aria-hidden="true">
+        <span class="ornament-rule"></span>
+        <span class="ornament-mark">+</span>
+        <span class="ornament-rule"></span>
+      </div>
+
+      <section class="step" aria-labelledby="stap-1">
+        <p class="label" id="stap-1">Stap 1 · Bijbelverwijzing</p>
+
+        <div class="picker">
           <label class="field">
-            <span>Boek</span>
-            <select :value="selectedBookSlug" @change="onBookChange($event.target.value)">
-              <optgroup label="Oude Testament">
-                <option v-for="book in oldTestament" :key="book.slug" :value="book.slug">
-                  {{ book.listName || book.name }}
-                </option>
-              </optgroup>
-              <optgroup label="Nieuwe Testament">
-                <option v-for="book in newTestament" :key="book.slug" :value="book.slug">
-                  {{ book.listName || book.name }}
-                </option>
-              </optgroup>
-            </select>
+            <span class="field-label">Boek</span>
+            <div class="select-wrap">
+              <select :value="selectedBookSlug" @change="onBookChange($event.target.value)">
+                <optgroup label="Oude Testament">
+                  <option v-for="book in oldTestament" :key="book.slug" :value="book.slug">
+                    {{ book.listName || book.name }}
+                  </option>
+                </optgroup>
+                <optgroup label="Nieuwe Testament">
+                  <option v-for="book in newTestament" :key="book.slug" :value="book.slug">
+                    {{ book.listName || book.name }}
+                  </option>
+                </optgroup>
+              </select>
+            </div>
           </label>
 
           <label class="field">
-            <span>Hoofdstuk</span>
-            <select v-model="selectedChapter">
-              <option v-for="n in chapterCount" :key="n" :value="n">{{ n }}</option>
-            </select>
+            <span class="field-label">Hoofdstuk</span>
+            <div class="select-wrap">
+              <select v-model="selectedChapter">
+                <option v-for="n in chapterCount" :key="n" :value="n">{{ n }}</option>
+              </select>
+            </div>
           </label>
 
           <label class="field">
-            <span>Van vers</span>
-            <select v-model="fromVerse" :disabled="!verseNumbers.length">
-              <option v-for="n in verseNumbers" :key="n" :value="n">{{ n }}</option>
-            </select>
+            <span class="field-label">Van vers</span>
+            <div class="select-wrap">
+              <select v-model="fromVerse" :disabled="!verseNumbers.length">
+                <option v-for="n in verseNumbers" :key="n" :value="n">{{ n }}</option>
+              </select>
+            </div>
           </label>
 
           <label class="field">
-            <span>Tot vers</span>
-            <select v-model="toVerse" :disabled="!verseNumbers.length">
-              <option v-for="n in toVerseOptions" :key="n" :value="n">{{ n }}</option>
-            </select>
+            <span class="field-label">Tot vers</span>
+            <div class="select-wrap">
+              <select v-model="toVerse" :disabled="!verseNumbers.length">
+                <option v-for="n in toVerseOptions" :key="n" :value="n">{{ n }}</option>
+              </select>
+            </div>
           </label>
         </div>
 
-        <div class="fetch-grid">
-          <label class="field field-wide">
-            <span>Of typ een verwijzing</span>
+        <div class="reference-row">
+          <label class="field field-grow">
+            <span class="field-label">Of typ een verwijzing</span>
             <input
                 v-model="referenceInput"
                 type="text"
-                placeholder="Bijv. Handelingen 28:11-31, Ps. 23 of 1 Kor. 13:4-7"
+                class="reference-input"
+                placeholder="Bijv. Handelingen 28:11-31"
                 @keydown.enter.prevent="loadBibleReference"
             />
           </label>
 
-          <button class="primary" :disabled="isLoading" @click="loadBibleReference">
-            {{ isLoading ? 'Bezig...' : 'Haal tekst op' }}
+          <button class="btn btn-accent" :disabled="isLoading" @click="loadBibleReference">
+            {{ isLoading ? 'Bezig…' : 'Haal tekst op' }}
           </button>
-        </div>
 
-        <p v-if="!canFetch" class="message warning">
-          Automatisch ophalen werkt alleen via de lokale dev-server
-          (<span class="mono">npm run dev</span>) of met een ingestelde proxy
-          (<span class="mono">VITE_HSV_BASE_URL</span>). Plak anders de tekst
-          handmatig in het inputvak.
-        </p>
-        <p v-if="fetchError" class="message error">{{ fetchError }}</p>
-        <p v-else-if="isLoading" class="message info">{{ loadingLabel }} wordt geladen…</p>
-        <p v-else-if="fetchSuccess" class="message success">{{ fetchSuccess }}</p>
-      </section>
-
-      <section class="controls-card">
-        <div class="controls-top">
-          <div>
-            <h2>Instellingen</h2>
-            <p>Kies hoe de tekst moet worden opgemaakt.</p>
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-value">{{ versesCount }}</span>
+              <span class="stat-label">{{ versesCount === 1 ? 'vers' : 'verzen' }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ paragraphsCount }}</span>
+              <span class="stat-label">{{ paragraphsCount === 1 ? 'alinea' : "alinea's" }}</span>
+            </div>
           </div>
         </div>
 
-        <div class="controls-grid">
-          <label class="field">
-            <span>Alinea na aantal verzen</span>
-            <input
-                v-model.number="versesPerParagraph"
-                type="number"
-                min="1"
-                max="50"
-            />
+        <p v-if="!canFetch" class="message message-warning">
+          Automatisch ophalen werkt hier niet. Start de dev-server
+          (<span class="mono">npm run dev</span>) of stel
+          <span class="mono">VITE_HSV_BASE_URL</span> in. Je kunt de tekst wel
+          zelf in het linkervak plakken.
+        </p>
+        <p v-if="fetchError" class="message message-error">{{ fetchError }}</p>
+        <p v-else-if="isLoading" class="message message-info">{{ loadingLabel }} wordt geladen…</p>
+        <p v-else-if="fetchSuccess" class="message message-success">{{ fetchSuccess }}</p>
+      </section>
+
+      <section class="step step-settings" aria-labelledby="stap-2">
+        <div class="settings">
+          <label class="field field-narrow">
+            <span class="label" id="stap-2">Stap 2 · Verzen per alinea</span>
+            <input v-model.number="versesPerParagraph" type="number" min="1" max="50" />
           </label>
 
-          <label class="toggle-card">
-            <div>
-              <strong>Versnummers behouden</strong>
-              <small>Laat nummers zichtbaar in de output</small>
+          <div class="field">
+            <span class="label">Opmaak</span>
+            <div class="toggles">
+              <button
+                  type="button"
+                  class="toggle"
+                  role="switch"
+                  :aria-checked="keepVerseNumbers"
+                  @click="keepVerseNumbers = !keepVerseNumbers"
+              >
+                Versnummers: <b>{{ keepVerseNumbers ? 'aan' : 'weg' }}</b>
+              </button>
+
+              <button
+                  type="button"
+                  class="toggle"
+                  role="switch"
+                  :aria-checked="doubleLineBreak"
+                  @click="doubleLineBreak = !doubleLineBreak"
+              >
+                Witregel: <b>{{ doubleLineBreak ? 'aan' : 'uit' }}</b>
+              </button>
             </div>
-            <input v-model="keepVerseNumbers" type="checkbox" />
-          </label>
-
-          <label class="toggle-card">
-            <div>
-              <strong>Lege regel tussen alinea's</strong>
-              <small>Meer ruimte tussen tekstblokken</small>
-            </div>
-            <input v-model="doubleLineBreak" type="checkbox" />
-          </label>
-        </div>
-
-        <div class="button-row">
-          <button class="primary" @click="formatText">Formatteren</button>
-          <button class="secondary" @click="copyOutput">Kopieer output</button>
-          <button class="danger" @click="clearAll">Leegmaken</button>
+          </div>
         </div>
       </section>
 
-      <main class="editor-grid">
+      <section class="panels">
         <section class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>Input</h2>
-              <span>Opgehaalde of geplakte tekst</span>
-            </div>
+          <div class="panel-head">
+            <p class="label">Ruwe tekst</p>
+            <button
+                type="button"
+                class="text-btn"
+                :disabled="!inputText"
+                @click="clearAll"
+            >Wissen</button>
           </div>
 
           <textarea
               v-model="inputText"
-              class="editor"
-              placeholder="Bijvoorbeeld:&#10;1 In het begin schiep God de hemel en de aarde.&#10;2 De aarde nu was woest en leeg..."
+              class="raw-input"
+              spellcheck="false"
+              placeholder="1 In het begin schiep God de hemel en de aarde.&#10;2 De aarde nu was woest en leeg…"
           />
         </section>
 
         <section class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>Output</h2>
-              <span>Klaar om te kopiëren</span>
+          <div class="panel-head">
+            <p class="label" id="stap-3">Stap 3 · Doorlopende tekst</p>
+            <p class="label label-muted">
+              {{ paragraphsCount }} {{ paragraphsCount === 1 ? 'alinea' : "alinea's" }}
+            </p>
+          </div>
+
+          <div class="output" aria-labelledby="stap-3">
+            <div class="output-top">
+              <p class="output-ref">{{ outputReference }}</p>
+
+              <button
+                  type="button"
+                  class="copy-btn"
+                  :class="{ 'is-done': copyState === 'done', 'is-error': copyState === 'error' }"
+                  :disabled="!outputText"
+                  :title="copyTitle"
+                  :aria-label="copyTitle"
+                  @click="copyOutput"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path v-if="copyState === 'done'" d="m5 12.5 4.5 4.5L19 7" />
+                  <template v-else>
+                    <rect x="9" y="9" width="11" height="11" rx="2" />
+                    <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                  </template>
+                </svg>
+                <span class="copy-btn-text">{{ copyButtonText }}</span>
+              </button>
             </div>
-          </div>
 
-          <textarea
-              :value="outputText"
-              class="editor output"
-              readonly
-              placeholder="De geformatteerde tekst komt hier te staan"
-          />
+            <p
+                v-for="(paragraph, index) in outputParagraphs"
+                :key="index"
+                class="output-paragraph"
+            >{{ paragraph }}</p>
+            <p v-if="!outputParagraphs.length" class="output-empty">
+              De doorlopende tekst verschijnt hier.
+            </p>
+          </div>
         </section>
-      </main>
+      </section>
 
-      <section class="help-card">
-        <h3>Wat deze formatter doet</h3>
-        <div class="help-grid">
-          <div class="help-item">
-            <strong>Kies boek, hoofdstuk en verzen</strong>
-            <p>De HSV-tekst van jouw selectie wordt direct opgehaald, zonder kopiëren en plakken.</p>
-          </div>
-          <div class="help-item">
-            <strong>Of typ een verwijzing</strong>
-            <p>Bijvoorbeeld <span class="mono">Hand. 28:11-31</span>, <span class="mono">Psalm 23</span> of <span class="mono">1 Kor. 13:4-7</span>.</p>
-          </div>
-          <div class="help-item">
-            <strong>Maakt nette alinea’s</strong>
-            <p>Verdeelt automatisch op basis van jouw gekozen aantal verzen.</p>
-          </div>
-          <div class="help-item">
-            <strong>Direct kopieerbaar</strong>
-            <p>De output staat meteen klaar voor gebruik in je project.</p>
-          </div>
+      <section class="notes">
+        <div class="note">
+          <p class="label">01 — Verwijzing</p>
+          <p>Leest boek, hoofdstuk en versbereik en haalt precies dat bereik op.</p>
+        </div>
+        <div class="note">
+          <p class="label">02 — Versnummers</p>
+          <p>Haalt de nummers weg, of laat ze staan wanneer je ze nodig hebt.</p>
+        </div>
+        <div class="note">
+          <p class="label">03 — Alinea’s</p>
+          <p>Voegt verzen samen tot blokken van het aantal dat jij kiest.</p>
+        </div>
+        <div class="note">
+          <p class="label">04 — Kopiëren</p>
+          <p>De schone tekst staat direct klaar voor liturgie of studie.</p>
         </div>
       </section>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -300,8 +345,7 @@ const newTestament = BOOKS.slice(OLD_TESTAMENT.length)
 /*
  * De HSV-website stuurt geen CORS-headers, dus de browser kan de tekst niet
  * rechtstreeks ophalen. Lokaal loopt het verkeer via de Vite-proxy (/hsv-api,
- * zie vite.config.js). Voor een gehoste versie kan een eigen proxy worden
- * ingesteld via VITE_HSV_BASE_URL.
+ * zie vite.config.js), gehost via de Cloudflare Worker in VITE_HSV_BASE_URL.
  */
 const HSV_BASE_URL = String(import.meta.env.VITE_HSV_BASE_URL || '').replace(/\/+$/, '')
 const canFetch = import.meta.env.DEV || HSV_BASE_URL !== ''
@@ -313,7 +357,6 @@ const NO_FETCH_MESSAGE =
 const referenceInput = ref('Handelingen 28:11-31')
 const inputText = ref(`1 In het begin schiep God de hemel en de aarde.
 2 De aarde nu was woest en leeg, en duisternis lag over de watervloed; en de Geest van God zweefde boven het water.
-
 3 En God zei: Laat er licht zijn! En er was licht.
 4 En God zag het licht dat het goed was; en God maakte scheiding tussen het licht en de duisternis.
 5 En God noemde het licht dag en de duisternis noemde Hij nacht. Toen was het avond geweest en het was morgen geweest: de eerste dag.`)
@@ -326,12 +369,18 @@ const isLoading = ref(false)
 const loadingLabel = ref('')
 const fetchError = ref('')
 const fetchSuccess = ref('')
+const copyState = ref('idle')
 
 const selectedBookSlug = ref('handelingen')
 const selectedChapter = ref(28)
 const fromVerse = ref(11)
 const toVerse = ref(31)
 const chapterVerses = ref([])
+
+// Onthoudt welke tekst wij zelf hebben opgehaald, zodat het label boven de
+// output verdwijnt zodra iemand de ruwe tekst met de hand aanpast.
+const generatedText = ref('')
+const sourceLabel = ref('')
 
 const selectedBook = computed(() => bookBySlug.get(selectedBookSlug.value))
 const chapterCount = computed(() => selectedBook.value?.chapters || 1)
@@ -341,6 +390,7 @@ const toVerseOptions = computed(() => verseNumbers.value.filter((n) => n >= from
 const chapterCache = new Map()
 let pendingRange = null
 let activeRequest = 0
+let copyTimer = null
 
 const normalizeWhitespace = (text) => {
   return text
@@ -536,6 +586,8 @@ const applySelection = () => {
   )
 
   inputText.value = selected.map((verse) => `${verse.number} ${verse.text}`).join('\n')
+  generatedText.value = inputText.value
+  sourceLabel.value = label
   referenceInput.value = label
   formatText()
 
@@ -707,28 +759,103 @@ const formatText = () => {
   outputText.value = paragraphs.join(separator)
 }
 
-const copyOutput = async () => {
-  if (!outputText.value) formatText()
-  if (!outputText.value) return
+/*
+ * Kopieert naar het klembord. De moderne Clipboard API is de eerste keuze; in
+ * oudere browsers en afgeschermde webviews is die geblokkeerd, dus valt de
+ * functie terug op een tijdelijk tekstveld met execCommand.
+ */
+const writeToClipboard = async (text) => {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch {
+    // Geen probleem: hieronder volgt de terugvaloptie.
+  }
+
+  const helper = document.createElement('textarea')
+  helper.value = text
+  helper.setAttribute('readonly', '')
+  helper.style.position = 'fixed'
+  helper.style.top = '0'
+  helper.style.left = '0'
+  helper.style.opacity = '0'
+  document.body.appendChild(helper)
+
+  const selection = document.getSelection()
+  const previousRange = selection && selection.rangeCount ? selection.getRangeAt(0) : null
+
+  helper.select()
+  helper.setSelectionRange(0, helper.value.length)
+
+  let copied = false
 
   try {
-    await navigator.clipboard.writeText(outputText.value)
-    alert('De output is gekopieerd.')
+    copied = document.execCommand('copy')
   } catch {
-    alert('Kopiëren lukte niet. Kopieer de tekst handmatig uit het outputvak.')
+    copied = false
   }
+
+  helper.remove()
+
+  if (selection && previousRange) {
+    selection.removeAllRanges()
+    selection.addRange(previousRange)
+  }
+
+  return copied
 }
+
+const copyOutput = async () => {
+  if (!outputText.value) return
+
+  clearTimeout(copyTimer)
+  copyState.value = (await writeToClipboard(outputText.value)) ? 'done' : 'error'
+
+  copyTimer = setTimeout(() => {
+    copyState.value = 'idle'
+  }, 2400)
+}
+
+const copyButtonText = computed(() => {
+  if (copyState.value === 'done') return 'Gekopieerd'
+  if (copyState.value === 'error') return 'Mislukt'
+  return 'Kopieer'
+})
+
+const copyTitle = computed(() => {
+  if (copyState.value === 'done') return 'Gekopieerd naar het klembord'
+  if (copyState.value === 'error') return 'Kopiëren mislukt, selecteer de tekst handmatig'
+  return 'Kopieer de doorlopende tekst'
+})
 
 const clearAll = () => {
   referenceInput.value = ''
   inputText.value = ''
   outputText.value = ''
+  generatedText.value = ''
+  sourceLabel.value = ''
   fetchError.value = ''
   fetchSuccess.value = ''
 }
 
 const versesCount = computed(() => extractVerses(inputText.value).length)
 const paragraphsCount = computed(() => buildParagraphs(extractVerses(inputText.value)).length)
+
+const outputParagraphs = computed(() =>
+    outputText.value
+        .split('\n')
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean)
+)
+
+const outputReference = computed(() =>
+    sourceLabel.value && inputText.value === generatedText.value ? sourceLabel.value : ''
+)
+
+// Houd de output altijd gelijk aan de ruwe tekst en de gekozen instellingen.
+watch([inputText, versesPerParagraph, keepVerseNumbers, doubleLineBreak], () => formatText())
 
 formatText()
 
@@ -738,463 +865,768 @@ onMounted(() => {
 </script>
 
 <style scoped>
-:global(*) {
+:global(*),
+:global(*::before),
+:global(*::after) {
   box-sizing: border-box;
+}
+
+:global(html) {
+  -webkit-text-size-adjust: 100%;
 }
 
 :global(html, body, #app) {
   margin: 0;
+  padding: 0;
   min-height: 100%;
 }
 
 :global(body) {
-  font-family: Inter, Arial, Helvetica, sans-serif;
-  background: #08111f;
-  color: #e2e8f0;
+  min-width: 320px;
+  background: #f4f0e8;
+  color: #23201b;
+  color-scheme: light;
+  font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-:global(textarea, input, button, select) {
-  font: inherit;
-}
+.app {
+  --paper: #f4f0e8;
+  --paper-raised: #fbf9f4;
+  --band: #ece5d7;
+  --ink: #23201b;
+  --ink-soft: #4f4941;
+  --ink-muted: #8d8477;
+  --rule: #ddd5c5;
+  --rule-strong: #cbc2af;
+  --accent: #9d3a17;
+  --accent-dark: #7f2f11;
+  --accent-tint: rgba(157, 58, 23, 0.08);
 
-.page {
-  position: relative;
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --font-label: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+
   min-height: 100vh;
-  overflow: hidden;
-  background:
-      radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 30%),
-      radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent 28%),
-      linear-gradient(180deg, #08111f 0%, #0b1220 100%);
-  padding: 32px 24px 40px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  overflow-x: hidden;
 }
 
-.background-glow {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(80px);
-  opacity: 0.22;
-  pointer-events: none;
-}
-
-.background-glow-left {
-  width: 280px;
-  height: 280px;
-  left: -80px;
-  top: 60px;
-  background: #2563eb;
-}
-
-.background-glow-right {
-  width: 320px;
-  height: 320px;
-  right: -100px;
-  top: 120px;
-  background: #4f46e5;
-}
-
-.container {
-  position: relative;
-  z-index: 1;
+.shell {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1240px;
   margin: 0 auto;
+  padding-inline: clamp(20px, 4vw, 64px);
 }
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  background: var(--band);
+  border-bottom: 1px solid var(--rule);
+  padding-top: env(safe-area-inset-top);
+}
+
+.masthead-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding-block: 20px;
+}
+
+.brand,
+.masthead-note {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.brand {
+  color: var(--accent);
+}
+
+.brand-mark {
+  margin-right: 8px;
+  font-size: 1.1em;
+}
+
+.masthead-note {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+/* ---------- hero ---------- */
 
 .hero {
-  margin-bottom: 24px;
-  padding: 8px 4px 4px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: start;
+  padding-block: clamp(48px, 8vw, 96px) clamp(32px, 5vw, 56px);
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(37, 99, 235, 0.14);
-  border: 1px solid rgba(96, 165, 250, 0.18);
-  color: #bfdbfe;
-  font-size: 0.88rem;
-  margin-bottom: 14px;
+h1 {
+  margin: 0 0 clamp(20px, 3vw, 32px);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.5rem, 7.2vw, 5.1rem);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
-.hero h1 {
-  margin: 0 0 12px;
-  font-size: clamp(2.1rem, 4vw, 3.6rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  color: #f8fafc;
+h1 em {
+  color: var(--accent);
+  font-style: italic;
 }
 
-.hero p {
+.hero-lede p {
   margin: 0;
-  max-width: 900px;
-  color: #cbd5e1;
-  line-height: 1.7;
-  font-size: 1.05rem;
+  max-width: 34em;
+  font-size: clamp(1.08rem, 1.35vw, 1.32rem);
+  line-height: 1.62;
+  color: var(--ink-soft);
 }
 
-.fetch-card,
-.controls-card,
-.panel,
-.help-card {
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(14px);
+.hero-quote {
+  margin: 0;
+  padding-left: clamp(20px, 2.4vw, 30px);
+  border-left: 2px solid var(--accent);
 }
 
-.fetch-card,
-.controls-card,
-.help-card {
-  border-radius: 24px;
-  padding: 24px;
-  margin-bottom: 24px;
+.hero-quote blockquote {
+  margin: 0 0 16px;
+  font-size: clamp(1.18rem, 1.7vw, 1.55rem);
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink);
 }
 
-.fetch-top,
-.controls-top {
+.hero-quote figcaption {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* ---------- ornament ---------- */
+
+.ornament {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding-block: clamp(24px, 4vw, 44px);
 }
 
-.fetch-top h2,
-.controls-top h2 {
-  margin: 0 0 6px;
-  font-size: 1.25rem;
-  color: #f8fafc;
+.ornament-rule {
+  width: clamp(60px, 14vw, 160px);
+  height: 1px;
+  background: var(--rule-strong);
 }
 
-.fetch-top p,
-.controls-top p {
+.ornament-mark {
+  color: var(--accent);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* ---------- shared bits ---------- */
+
+.label {
+  display: block;
+  margin: 0 0 14px;
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.label-muted {
+  color: var(--ink-muted);
   margin: 0;
-  color: #94a3b8;
-}
-
-.select-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 2.2fr) repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 18px;
-}
-
-.fetch-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: end;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.field-wide {
   min-width: 0;
 }
 
-.field span {
-  color: #cbd5e1;
-  font-size: 0.95rem;
+.field-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
 }
 
-.field input[type='number'],
-.field input[type='text'],
-.field select {
+input[type='text'],
+input[type='number'],
+select,
+textarea {
   width: 100%;
-  height: 54px;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(2, 6, 23, 0.7);
-  color: #f8fafc;
-  padding: 0 16px;
-  font-size: 1rem;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--ink);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  padding: 0 18px;
+  height: 60px;
   outline: none;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.field select {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+
+.select-wrap {
+  position: relative;
+}
+
+.select-wrap::after {
+  content: '';
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--ink-muted);
+  border-bottom: 1.5px solid var(--ink-muted);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+select {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 44px;
   cursor: pointer;
-  color-scheme: dark;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
+  text-overflow: ellipsis;
 }
 
-.field select:disabled {
-  opacity: 0.5;
+select:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-.field input:focus,
-.field select:focus {
-  border-color: rgba(96, 165, 250, 0.7);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+/* ---------- step 1 ---------- */
+
+.step {
+  padding-block: clamp(8px, 1.5vw, 16px) clamp(32px, 5vw, 52px);
 }
 
-.status-pills {
+.picker {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 1.6vw, 22px);
+  margin-bottom: clamp(20px, 2.6vw, 30px);
+}
+
+.reference-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: clamp(16px, 2vw, 28px);
+  align-items: end;
+}
+
+.field-grow {
+  min-width: 0;
+}
+
+.stats {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  gap: clamp(20px, 3vw, 40px);
+  padding-bottom: 6px;
 }
 
-.pill {
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(30, 41, 59, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  color: #cbd5e1;
-  font-size: 0.9rem;
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.2vw, 2.55rem);
+  line-height: 1;
+  font-weight: 400;
+}
+
+.stat-label {
+  font-family: var(--font-label);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  padding: 0 clamp(24px, 3vw, 38px);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
   white-space: nowrap;
+  transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+.btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: #fdf9f3;
+}
+
+.btn-accent:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+/* ---------- messages ---------- */
+
+.message {
+  margin: 20px 0 0;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.message-error {
+  color: #8f2f22;
+}
+
+.message-success {
+  color: #46603c;
+}
+
+.message-info,
+.message-warning {
+  color: var(--ink-muted);
 }
 
 .mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: #dbeafe;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  color: var(--ink);
 }
 
-.message {
-  margin: 14px 0 0;
-  font-size: 0.95rem;
-  line-height: 1.6;
+/* ---------- step 2 ---------- */
+
+.step-settings {
+  border-top: 1px solid var(--rule);
+  padding-top: clamp(28px, 4vw, 44px);
 }
 
-.message.error {
-  color: #fca5a5;
-}
-
-.message.success {
-  color: #86efac;
-}
-
-.message.info {
-  color: #93c5fd;
-}
-
-.message.warning {
-  color: #fcd34d;
-}
-
-.controls-grid {
+.settings {
   display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 44px);
+  align-items: end;
 }
 
-.toggle-card {
-  min-height: 54px;
-  border-radius: 18px;
-  padding: 16px 18px;
-  background: rgba(2, 6, 23, 0.56);
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+.field-narrow input {
+  max-width: 200px;
 }
 
-.toggle-card strong {
-  display: block;
-  color: #f8fafc;
-  font-size: 0.96rem;
-  margin-bottom: 4px;
-}
-
-.toggle-card small {
-  color: #94a3b8;
-  font-size: 0.83rem;
-}
-
-.toggle-card input {
-  width: 20px;
-  height: 20px;
-  accent-color: #2563eb;
-  flex-shrink: 0;
-}
-
-.button-row {
+.toggles {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 22px;
 }
 
-button {
-  border: none;
-  border-radius: 14px;
-  padding: 13px 20px;
-  font-size: 0.97rem;
-  font-weight: 600;
+.toggle {
+  min-height: 60px;
+  padding: 0 22px;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  font-family: var(--font-serif);
+  font-size: 1.02rem;
+  color: var(--ink-soft);
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: border-color 0.16s ease, color 0.16s ease;
 }
 
-button:hover:not(:disabled) {
-  transform: translateY(-1px);
+.toggle b {
+  font-weight: 600;
+  color: var(--accent);
 }
 
-button:disabled {
-  opacity: 0.65;
+.toggle:hover {
+  border-color: var(--ink-muted);
+}
+
+/* ---------- kleine acties in de paneelkoppen ---------- */
+
+.text-btn {
+  padding: 4px 0;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--rule-strong);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease;
+}
+
+.text-btn:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.text-btn:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.primary {
-  background: linear-gradient(135deg, #2563eb, #3b82f6);
-  color: white;
+.copy-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  margin: -6px -8px 0 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
 }
 
-.secondary {
-  background: #334155;
-  color: white;
+.copy-btn svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.danger {
-  background: #991b1b;
-  color: white;
+.copy-btn:hover:not(:disabled),
+.copy-btn:focus-visible {
+  color: var(--accent);
+  border-color: var(--rule-strong);
+  background: var(--paper);
 }
 
-.editor-grid {
+.copy-btn.is-done {
+  color: #46603c;
+  border-color: transparent;
+  background: transparent;
+}
+
+.copy-btn.is-error {
+  color: #8f2f22;
+}
+
+.copy-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ---------- panels ---------- */
+
+.panels {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: clamp(28px, 4vw, 56px);
+  margin-top: clamp(36px, 5vw, 60px);
+  padding-top: clamp(28px, 4vw, 44px);
+  border-top: 1px solid var(--rule);
 }
 
 .panel {
-  border-radius: 26px;
-  padding: 20px;
-  min-height: 620px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
-.panel-header {
+.panel-head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
-.panel-header h2 {
-  margin: 0 0 4px;
-  color: #f8fafc;
-  font-size: 1.2rem;
+.panel-head .label {
+  margin-bottom: 0;
 }
 
-.panel-header span {
-  color: #94a3b8;
-  font-size: 0.92rem;
-}
-
-.editor {
+.raw-input {
   flex: 1;
-  width: 100%;
-  min-height: 0;
-  resize: none;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 20px;
-  background: rgba(2, 6, 23, 0.72);
-  color: #f8fafc;
-  padding: 20px;
-  font-size: 1rem;
-  line-height: 1.8;
-  outline: none;
-}
-
-.editor:focus {
-  border-color: rgba(96, 165, 250, 0.75);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  min-height: 420px;
+  height: auto;
+  padding: 26px 28px;
+  line-height: 1.72;
+  resize: vertical;
 }
 
 .output {
-  white-space: pre-wrap;
+  flex: 1;
+  min-height: 420px;
+  padding: 26px 28px;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  overflow-wrap: break-word;
 }
 
-.help-card h3 {
-  margin: 0 0 18px;
-  color: #f8fafc;
-  font-size: 1.15rem;
+.output-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 26px;
+  margin-bottom: 20px;
 }
 
-.help-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.help-item {
-  padding: 16px;
-  border-radius: 18px;
-  background: rgba(2, 6, 23, 0.4);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-}
-
-.help-item strong {
-  display: block;
-  margin-bottom: 8px;
-  color: #f8fafc;
-}
-
-.help-item p {
+.output-ref {
   margin: 0;
-  color: #94a3b8;
+  padding-top: 4px;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.output-paragraph {
+  margin: 0 0 1.15em;
+  font-size: 1.12rem;
+  line-height: 1.78;
+  text-align: justify;
+  hyphens: auto;
+}
+
+.output-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.output-empty {
+  margin: 0;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+/* ---------- notes ---------- */
+
+.notes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(24px, 3vw, 44px);
+  margin-top: clamp(44px, 6vw, 72px);
+  padding-block: clamp(32px, 4vw, 48px) clamp(48px, 7vw, 88px);
+  border-top: 1px solid var(--rule);
+}
+
+.note p:last-child {
+  margin: 0;
+  font-size: 1.02rem;
   line-height: 1.6;
-  font-size: 0.94rem;
+  color: var(--ink-soft);
+  max-width: 26em;
 }
 
-@media (max-width: 1200px) {
-  .controls-grid {
-    grid-template-columns: 1fr;
+/* ---------- tablet ---------- */
+
+@media (max-width: 1080px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(28px, 5vw, 44px);
   }
 
-  .help-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .page {
-    padding: 20px 14px 28px;
+  .hero-quote {
+    max-width: 34em;
   }
 
-  .fetch-top,
-  .controls-top {
-    flex-direction: column;
-    align-items: flex-start;
+  .picker {
+    grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
   }
 
-  .select-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .settings {
+    grid-template-columns: minmax(140px, 200px) minmax(0, 1fr);
   }
 
-  .fetch-grid,
-  .editor-grid {
-    grid-template-columns: 1fr;
+  .panels {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .panel {
-    min-height: auto;
-  }
-
-  .editor {
+  .raw-input,
+  .output {
     min-height: 340px;
   }
 
-  .help-grid {
-    grid-template-columns: 1fr;
+  .notes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 520px) {
-  .select-grid {
-    grid-template-columns: 1fr;
+/* ---------- small tablet / large phone ---------- */
+
+@media (max-width: 820px) {
+  .picker {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .picker .field:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .reference-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .reference-row .btn {
+    width: 100%;
+  }
+
+  .stats {
+    justify-content: flex-start;
+    gap: 36px;
+    padding-bottom: 0;
+  }
+}
+
+/* ---------- phone ---------- */
+
+@media (max-width: 560px) {
+  .masthead-inner {
+    padding-block: 16px;
+  }
+
+  .masthead-note {
+    display: none;
+  }
+
+  .hero {
+    padding-block: 36px 24px;
+  }
+
+  h1 {
+    font-size: clamp(2.3rem, 11vw, 3.2rem);
+  }
+
+  .picker {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .field-narrow input {
+    max-width: none;
+  }
+
+  .toggles {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toggle {
+    text-align: left;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .copy-btn-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .copy-btn {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    margin: -8px -10px 0 12px;
+  }
+
+  input[type='text'],
+  input[type='number'],
+  select,
+  .btn,
+  .toggle {
+    height: 56px;
+    min-height: 56px;
+  }
+
+  .raw-input,
+  .output {
+    min-height: 300px;
+    padding: 20px;
+  }
+
+  .output-paragraph {
+    text-align: left;
+    hyphens: manual;
+  }
+
+  .notes {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }
 </style>
