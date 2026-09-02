@@ -70,8 +70,23 @@ VITE_HSV_BASE_URL=https://formatbible.jouw-naam.workers.dev
 Commit en push. GitHub Actions bouwt de site opnieuw en daarna haalt de online
 versie de verzen zelf op.
 
-Wil je dat alleen jouw site de worker mag gebruiken? Vul dan in `worker.js`
-de lijst `ALLOWED_ORIGINS` in met `https://michaelshaker.github.io`.
+### Wie mag de worker gebruiken
+
+De worker accepteert alleen adressen van de vorm `/teksten/<boek>/<hoofdstuk>`;
+al het andere krijgt een 404. Daarnaast staat in `ALLOWED_ORIGINS` bovenin
+[`cloudflare/worker.js`](cloudflare/worker.js) welke websites hem in de browser
+mogen aanroepen:
+
+- `https://michaelshaker.github.io` — de gehoste app.
+- `http://localhost` en `http://127.0.0.1` (elke poort), zodat een lokale
+  productie-build blijft werken. Zet `ALLOW_LOCALHOST` op `false` om dat uit te
+  zetten.
+
+Andere websites krijgen 403. Verzoeken zonder `Origin`-header (curl, of de URL
+in je adresbalk) komen er wel door; CORS bestaat alleen voor browsers en die
+zetten die header zelf, dus een andere site kan zich niet voordoen als de jouwe.
+
+Een lege `ALLOWED_ORIGINS` betekent: alle websites mogen.
 
 ---
 

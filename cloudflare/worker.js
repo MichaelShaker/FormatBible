@@ -11,9 +11,14 @@
 
 const HSV_ORIGIN = 'https://herzienestatenvertaling.nl'
 
-// Laat leeg om elke website toe te staan. Vul in om de proxy alleen voor je
-// eigen site te reserveren, bijvoorbeeld: ['https://michaelshaker.github.io']
-const ALLOWED_ORIGINS = []
+// Websites die de proxy mogen gebruiken. Een lege lijst betekent: iedereen mag.
+const ALLOWED_ORIGINS = ['https://michaelshaker.github.io']
+
+// Laat ook pagina's op localhost toe, zodat een lokale productie-build
+// (npm run build && npm run preview) blijft werken. Dit is geen gat: de browser
+// bepaalt zelf de Origin-waarde, dus een andere website kan zich niet als
+// localhost voordoen.
+const ALLOW_LOCALHOST = true
 
 // Bijbeltekst verandert niet, dus een week cachen is prima. (De Cloudflare-cache
 // werkt alleen op een eigen domein; op *.workers.dev wordt elk verzoek gewoon
@@ -96,24 +101,40 @@ export default {
   },
 }
 
+// Geeft de CORS-headers voor deze Origin terug, of null als de website
+// geweigerd moet worden.
 function corsHeaders(origin) {
-  const allowAll = ALLOWED_ORIGINS.length === 0
-
-  // Verzoeken zonder Origin-header (curl, direct in de adresbalk) mogen altijd;
-  // CORS is alleen relevant voor browsers die vanaf een website laden.
-  if (!allowAll && origin && !ALLOWED_ORIGINS.includes(origin)) {
-    return null
+  if (ALLOWED_ORIGINS.length === 0) {
+    return {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Max-Age': '86400',
+    }
   }
 
-  if (!allowAll && !origin) {
-    return {}
-  }
+  // Verzoeken zonder Origin-header komen niet van een website (curl, of de URL
+  // in de adresbalk). CORS speelt daar geen rol, dus die laten we door.
+  if (!origin) return {}
+
+  if (!isAllowedOrigin(origin)) return null
 
   return {
-    'Access-Control-Allow-Origin': allowAll ? '*' : origin,
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Max-Age': '86400',
-    ...(allowAll ? {} : { Vary: 'Origin' }),
+    Vary: 'Origin',
+  }
+}
+
+function isAllowedOrigin(origin) {
+  if (ALLOWED_ORIGINS.includes(origin)) return true
+  if (!ALLOW_LOCALHOST) return false
+
+  try {
+    const { protocol, hostname } = new URL(origin)
+    return protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1')
+  } catch {
+    return false
   }
 }
 
