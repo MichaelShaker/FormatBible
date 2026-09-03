@@ -12,9 +12,8 @@
         <div class="hero-lede">
           <h1>Bijbeltekst <em>doorlopend</em> maken</h1>
           <p>
-            Kies een boek, hoofdstuk en versbereik, of plak ruwe tekst met
-            versnummers. De verzen worden samengevoegd tot alinea’s die lezen als
-            proza, klaar om te kopiëren naar liturgie, studie of leesrooster.
+            Kies boek, hoofdstuk en verzen. De tekst wordt samengevoegd tot
+            alinea’s die lezen als proza, klaar om te kopiëren.
           </p>
         </div>
 
@@ -26,14 +25,15 @@
         </figure>
       </section>
 
-      <div class="ornament" aria-hidden="true">
-        <span class="ornament-rule"></span>
-        <span class="ornament-mark">+</span>
-        <span class="ornament-rule"></span>
-      </div>
-
-      <section class="step" aria-labelledby="stap-1">
-        <p class="label" id="stap-1">Stap 1 · Bijbelverwijzing</p>
+      <section class="console" aria-labelledby="stap-1">
+        <div class="console-head">
+          <p class="label" id="stap-1">Stap 1 · Kies je tekst</p>
+          <p class="counts">
+            {{ versesCount }} {{ versesCount === 1 ? 'vers' : 'verzen' }}
+            <span aria-hidden="true">·</span>
+            {{ paragraphsCount }} {{ paragraphsCount === 1 ? 'alinea' : "alinea's" }}
+          </p>
+        </div>
 
         <div class="picker">
           <label class="field">
@@ -97,17 +97,6 @@
           <button class="btn btn-accent" :disabled="isLoading" @click="loadBibleReference">
             {{ isLoading ? 'Bezig…' : 'Haal tekst op' }}
           </button>
-
-          <div class="stats">
-            <div class="stat">
-              <span class="stat-value">{{ versesCount }}</span>
-              <span class="stat-label">{{ versesCount === 1 ? 'vers' : 'verzen' }}</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">{{ paragraphsCount }}</span>
-              <span class="stat-label">{{ paragraphsCount === 1 ? 'alinea' : "alinea's" }}</span>
-            </div>
-          </div>
         </div>
 
         <p v-if="!canFetch" class="message message-warning">
@@ -119,37 +108,52 @@
         <p v-if="fetchError" class="message message-error">{{ fetchError }}</p>
         <p v-else-if="isLoading" class="message message-info">{{ loadingLabel }} wordt geladen…</p>
         <p v-else-if="fetchSuccess" class="message message-success">{{ fetchSuccess }}</p>
-      </section>
 
-      <section class="step step-settings" aria-labelledby="stap-2">
-        <div class="settings">
-          <label class="field field-narrow">
-            <span class="label" id="stap-2">Stap 2 · Verzen per alinea</span>
+        <hr class="console-rule" />
+
+        <div class="console-head">
+          <p class="label" id="stap-2">Stap 2 · Opmaak</p>
+        </div>
+
+        <div class="format-row">
+          <label class="field field-number">
+            <span class="field-label">Verzen per alinea</span>
             <input v-model.number="versesPerParagraph" type="number" min="1" max="50" />
           </label>
 
-          <div class="field">
-            <span class="label">Opmaak</span>
-            <div class="toggles">
+          <div class="segment">
+            <span class="field-label" id="seg-nummers">Versnummers</span>
+            <div class="segment-options" role="group" aria-labelledby="seg-nummers">
               <button
                   type="button"
-                  class="toggle"
-                  role="switch"
-                  :aria-checked="keepVerseNumbers"
-                  @click="keepVerseNumbers = !keepVerseNumbers"
-              >
-                Versnummers: <b>{{ keepVerseNumbers ? 'aan' : 'weg' }}</b>
-              </button>
+                  :class="{ 'is-active': keepVerseNumbers }"
+                  :aria-pressed="keepVerseNumbers"
+                  @click="keepVerseNumbers = true"
+              >Aan</button>
+              <button
+                  type="button"
+                  :class="{ 'is-active': !keepVerseNumbers }"
+                  :aria-pressed="!keepVerseNumbers"
+                  @click="keepVerseNumbers = false"
+              >Weg</button>
+            </div>
+          </div>
 
+          <div class="segment">
+            <span class="field-label" id="seg-witregel">Witregel</span>
+            <div class="segment-options" role="group" aria-labelledby="seg-witregel">
               <button
                   type="button"
-                  class="toggle"
-                  role="switch"
-                  :aria-checked="doubleLineBreak"
-                  @click="doubleLineBreak = !doubleLineBreak"
-              >
-                Witregel: <b>{{ doubleLineBreak ? 'aan' : 'uit' }}</b>
-              </button>
+                  :class="{ 'is-active': doubleLineBreak }"
+                  :aria-pressed="doubleLineBreak"
+                  @click="doubleLineBreak = true"
+              >Aan</button>
+              <button
+                  type="button"
+                  :class="{ 'is-active': !doubleLineBreak }"
+                  :aria-pressed="!doubleLineBreak"
+                  @click="doubleLineBreak = false"
+              >Uit</button>
             </div>
           </div>
         </div>
@@ -161,10 +165,16 @@
             <p class="label">Ruwe tekst</p>
             <button
                 type="button"
-                class="text-btn"
+                class="mini-btn"
                 :disabled="!inputText"
+                title="Maak de ruwe tekst leeg"
                 @click="clearAll"
-            >Wissen</button>
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+              Wissen
+            </button>
           </div>
 
           <textarea
@@ -178,34 +188,28 @@
         <section class="panel">
           <div class="panel-head">
             <p class="label" id="stap-3">Stap 3 · Doorlopende tekst</p>
-            <p class="label label-muted">
-              {{ paragraphsCount }} {{ paragraphsCount === 1 ? 'alinea' : "alinea's" }}
-            </p>
+
+            <button
+                type="button"
+                class="mini-btn mini-btn-copy"
+                :class="{ 'is-done': copyState === 'done', 'is-error': copyState === 'error' }"
+                :disabled="!outputText"
+                :title="copyTitle"
+                @click="copyOutput"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path v-if="copyState === 'done'" d="m5 12.5 4.5 4.5L19 7" />
+                <template v-else>
+                  <rect x="9" y="9" width="11" height="11" rx="2" />
+                  <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                </template>
+              </svg>
+              {{ copyButtonText }}
+            </button>
           </div>
 
           <div class="output" aria-labelledby="stap-3">
-            <div class="output-top">
-              <p class="output-ref">{{ outputReference }}</p>
-
-              <button
-                  type="button"
-                  class="copy-btn"
-                  :class="{ 'is-done': copyState === 'done', 'is-error': copyState === 'error' }"
-                  :disabled="!outputText"
-                  :title="copyTitle"
-                  :aria-label="copyTitle"
-                  @click="copyOutput"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path v-if="copyState === 'done'" d="m5 12.5 4.5 4.5L19 7" />
-                  <template v-else>
-                    <rect x="9" y="9" width="11" height="11" rx="2" />
-                    <path d="M5 15V5a2 2 0 0 1 2-2h10" />
-                  </template>
-                </svg>
-                <span class="copy-btn-text">{{ copyButtonText }}</span>
-              </button>
-            </div>
+            <p v-if="outputReference" class="output-ref">{{ outputReference }}</p>
 
             <p
                 v-for="(paragraph, index) in outputParagraphs"
@@ -219,24 +223,12 @@
         </section>
       </section>
 
-      <section class="notes">
-        <div class="note">
-          <p class="label">01 — Verwijzing</p>
-          <p>Leest boek, hoofdstuk en versbereik en haalt precies dat bereik op.</p>
-        </div>
-        <div class="note">
-          <p class="label">02 — Versnummers</p>
-          <p>Haalt de nummers weg, of laat ze staan wanneer je ze nodig hebt.</p>
-        </div>
-        <div class="note">
-          <p class="label">03 — Alinea’s</p>
-          <p>Voegt verzen samen tot blokken van het aantal dat jij kiest.</p>
-        </div>
-        <div class="note">
-          <p class="label">04 — Kopiëren</p>
-          <p>De schone tekst staat direct klaar voor liturgie of studie.</p>
-        </div>
-      </section>
+      <footer class="footnote">
+        <p>
+          Kies je tekst · Zet versnummers aan of uit · Bepaal de alinealengte ·
+          Kopieer met één tik
+        </p>
+      </footer>
     </main>
   </div>
 </template>
@@ -896,12 +888,15 @@ onMounted(() => {
   --band: #ece5d7;
   --ink: #23201b;
   --ink-soft: #4f4941;
-  --ink-muted: #8d8477;
+  --ink-muted: #857d70;
   --rule: #ddd5c5;
-  --rule-strong: #cbc2af;
+  --rule-strong: #c7bda9;
   --accent: #9d3a17;
   --accent-dark: #7f2f11;
-  --accent-tint: rgba(157, 58, 23, 0.08);
+  --accent-tint: rgba(157, 58, 23, 0.1);
+  --good: #3f5a35;
+
+  --control: 48px;
 
   --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
@@ -916,9 +911,9 @@ onMounted(() => {
 
 .shell {
   width: 100%;
-  max-width: 1240px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding-inline: clamp(20px, 4vw, 64px);
+  padding-inline: clamp(16px, 3.5vw, 48px);
 }
 
 /* ---------- masthead ---------- */
@@ -934,17 +929,17 @@ onMounted(() => {
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px 24px;
-  padding-block: 20px;
+  gap: 6px 20px;
+  padding-block: 13px;
 }
 
 .brand,
 .masthead-note {
   margin: 0;
   font-family: var(--font-label);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.17em;
   text-transform: uppercase;
 }
 
@@ -953,7 +948,7 @@ onMounted(() => {
 }
 
 .brand-mark {
-  margin-right: 8px;
+  margin-right: 7px;
   font-size: 1.1em;
 }
 
@@ -966,18 +961,18 @@ onMounted(() => {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: clamp(28px, 5vw, 72px);
-  align-items: start;
-  padding-block: clamp(48px, 8vw, 96px) clamp(32px, 5vw, 56px);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: clamp(20px, 4vw, 48px);
+  align-items: center;
+  padding-block: clamp(26px, 4vw, 44px) clamp(20px, 3vw, 30px);
 }
 
 h1 {
-  margin: 0 0 clamp(20px, 3vw, 32px);
+  margin: 0 0 12px;
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(2.5rem, 7.2vw, 5.1rem);
-  line-height: 1.02;
+  font-size: clamp(2rem, 4.4vw, 3.2rem);
+  line-height: 1.05;
   letter-spacing: -0.015em;
   text-wrap: balance;
 }
@@ -989,87 +984,58 @@ h1 em {
 
 .hero-lede p {
   margin: 0;
-  max-width: 34em;
-  font-size: clamp(1.08rem, 1.35vw, 1.32rem);
-  line-height: 1.62;
+  max-width: 32em;
+  font-size: clamp(1rem, 1.15vw, 1.14rem);
+  line-height: 1.55;
   color: var(--ink-soft);
 }
 
 .hero-quote {
   margin: 0;
-  padding-left: clamp(20px, 2.4vw, 30px);
+  padding-left: clamp(14px, 1.6vw, 20px);
   border-left: 2px solid var(--accent);
 }
 
 .hero-quote blockquote {
-  margin: 0 0 16px;
-  font-size: clamp(1.18rem, 1.7vw, 1.55rem);
+  margin: 0 0 8px;
+  font-size: clamp(1rem, 1.25vw, 1.18rem);
   font-style: italic;
-  line-height: 1.5;
-  color: var(--ink);
+  line-height: 1.45;
 }
 
 .hero-quote figcaption {
   font-family: var(--font-label);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.17em;
   text-transform: uppercase;
   color: var(--ink-muted);
-}
-
-/* ---------- ornament ---------- */
-
-.ornament {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  padding-block: clamp(24px, 4vw, 44px);
-}
-
-.ornament-rule {
-  width: clamp(60px, 14vw, 160px);
-  height: 1px;
-  background: var(--rule-strong);
-}
-
-.ornament-mark {
-  color: var(--accent);
-  font-size: 1.1rem;
-  line-height: 1;
 }
 
 /* ---------- shared bits ---------- */
 
 .label {
-  display: block;
-  margin: 0 0 14px;
+  margin: 0;
   font-family: var(--font-label);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.17em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--accent);
-}
-
-.label-muted {
-  color: var(--ink-muted);
-  margin: 0;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
   min-width: 0;
 }
 
 .field-label {
   font-family: var(--font-label);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--ink-muted);
 }
@@ -1080,22 +1046,27 @@ select,
 textarea {
   width: 100%;
   font-family: var(--font-serif);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--ink);
-  background: var(--paper-raised);
+  background: #fff;
   border: 1px solid var(--rule-strong);
-  border-radius: 2px;
-  padding: 0 18px;
-  height: 60px;
+  border-radius: 3px;
+  padding: 0 14px;
+  height: var(--control);
   outline: none;
-  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+button:focus-visible {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-tint);
+}
+
+button:focus-visible {
+  outline: none;
 }
 
 .select-wrap {
@@ -1105,12 +1076,12 @@ textarea:focus-visible {
 .select-wrap::after {
   content: '';
   position: absolute;
-  right: 18px;
+  right: 15px;
   top: 50%;
-  width: 8px;
-  height: 8px;
-  border-right: 1.5px solid var(--ink-muted);
-  border-bottom: 1.5px solid var(--ink-muted);
+  width: 7px;
+  height: 7px;
+  border-right: 1.6px solid var(--ink-soft);
+  border-bottom: 1.6px solid var(--ink-soft);
   transform: translateY(-70%) rotate(45deg);
   pointer-events: none;
 }
@@ -1118,7 +1089,7 @@ textarea:focus-visible {
 select {
   appearance: none;
   -webkit-appearance: none;
-  padding-right: 44px;
+  padding-right: 38px;
   cursor: pointer;
   text-overflow: ellipsis;
 }
@@ -1128,81 +1099,91 @@ select:disabled {
   cursor: not-allowed;
 }
 
-/* ---------- step 1 ---------- */
+/* ---------- bedieningspaneel ---------- */
 
-.step {
-  padding-block: clamp(8px, 1.5vw, 16px) clamp(32px, 5vw, 52px);
+.console {
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: clamp(16px, 2.2vw, 24px);
+}
+
+.console-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.counts {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.console-rule {
+  margin: clamp(16px, 2vw, 22px) 0 0;
+  border: none;
+  border-top: 1px solid var(--rule);
+}
+
+.console-rule + .console-head {
+  margin-top: clamp(16px, 2vw, 22px);
 }
 
 .picker {
   display: grid;
   grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
-  gap: clamp(14px, 1.6vw, 22px);
-  margin-bottom: clamp(20px, 2.6vw, 30px);
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .reference-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: clamp(16px, 2vw, 28px);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: end;
 }
 
-.field-grow {
-  min-width: 0;
-}
-
-.stats {
+.format-row {
   display: flex;
-  gap: clamp(20px, 3vw, 40px);
-  padding-bottom: 6px;
+  flex-wrap: wrap;
+  gap: clamp(16px, 2.4vw, 32px);
+  align-items: flex-end;
 }
 
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+.field-number {
+  width: 148px;
+  flex-shrink: 0;
 }
 
-.stat-value {
-  font-family: var(--font-display);
-  font-size: clamp(1.9rem, 3.2vw, 2.55rem);
-  line-height: 1;
-  font-weight: 400;
-}
-
-.stat-label {
-  font-family: var(--font-label);
-  font-size: 0.64rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-}
-
-/* ---------- buttons ---------- */
+/* ---------- knoppen ---------- */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 60px;
-  padding: 0 clamp(24px, 3vw, 38px);
+  height: var(--control);
+  padding: 0 clamp(18px, 2.4vw, 30px);
   border: 1px solid transparent;
-  border-radius: 2px;
+  border-radius: 3px;
   font-family: var(--font-label);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+  transition: background-color 0.15s ease;
 }
 
 .btn:disabled {
-  opacity: 0.42;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -1215,12 +1196,120 @@ select:disabled {
   background: var(--accent-dark);
 }
 
-/* ---------- messages ---------- */
+/* Keuzeknoppen: beide opties zichtbaar, de actieve is ingekleurd. */
+.segment {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.segment-options {
+  display: inline-flex;
+  height: var(--control);
+  padding: 3px;
+  background: var(--band);
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+}
+
+.segment-options button {
+  min-width: 62px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.segment-options button:hover:not(.is-active) {
+  color: var(--accent);
+}
+
+.segment-options button.is-active {
+  background: var(--ink);
+  color: #f7f3ea;
+  box-shadow: 0 1px 2px rgba(35, 32, 27, 0.2);
+}
+
+/* Kleine knoppen in de paneelkoppen. */
+.mini-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.mini-btn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mini-btn:hover:not(:disabled) {
+  border-color: var(--ink-soft);
+  color: var(--ink);
+}
+
+.mini-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mini-btn-copy {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #f7f3ea;
+}
+
+.mini-btn-copy:hover:not(:disabled) {
+  background: #3a352d;
+  border-color: #3a352d;
+  color: #fff;
+}
+
+.mini-btn-copy.is-done {
+  background: var(--good);
+  border-color: var(--good);
+  color: #fff;
+}
+
+.mini-btn-copy.is-error {
+  background: #8f2f22;
+  border-color: #8f2f22;
+  color: #fff;
+}
+
+/* ---------- meldingen ---------- */
 
 .message {
-  margin: 20px 0 0;
-  font-size: 1.02rem;
-  line-height: 1.55;
+  margin: 12px 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
   color: var(--ink-soft);
 }
 
@@ -1229,7 +1318,7 @@ select:disabled {
 }
 
 .message-success {
-  color: #46603c;
+  color: var(--good);
 }
 
 .message-info,
@@ -1239,146 +1328,17 @@ select:disabled {
 
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.9em;
+  font-size: 0.88em;
   color: var(--ink);
 }
 
-/* ---------- step 2 ---------- */
-
-.step-settings {
-  border-top: 1px solid var(--rule);
-  padding-top: clamp(28px, 4vw, 44px);
-}
-
-.settings {
-  display: grid;
-  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
-  gap: clamp(20px, 3vw, 44px);
-  align-items: end;
-}
-
-.field-narrow input {
-  max-width: 200px;
-}
-
-.toggles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.toggle {
-  min-height: 60px;
-  padding: 0 22px;
-  background: var(--paper-raised);
-  border: 1px solid var(--rule-strong);
-  border-radius: 2px;
-  font-family: var(--font-serif);
-  font-size: 1.02rem;
-  color: var(--ink-soft);
-  cursor: pointer;
-  transition: border-color 0.16s ease, color 0.16s ease;
-}
-
-.toggle b {
-  font-weight: 600;
-  color: var(--accent);
-}
-
-.toggle:hover {
-  border-color: var(--ink-muted);
-}
-
-/* ---------- kleine acties in de paneelkoppen ---------- */
-
-.text-btn {
-  padding: 4px 0;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--rule-strong);
-  font-family: var(--font-label);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  cursor: pointer;
-  transition: color 0.16s ease, border-color 0.16s ease;
-}
-
-.text-btn:hover:not(:disabled) {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-.text-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.copy-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 38px;
-  padding: 0 14px;
-  margin: -6px -8px 0 12px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  font-family: var(--font-label);
-  font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  cursor: pointer;
-  transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
-}
-
-.copy-btn svg {
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.copy-btn:hover:not(:disabled),
-.copy-btn:focus-visible {
-  color: var(--accent);
-  border-color: var(--rule-strong);
-  background: var(--paper);
-}
-
-.copy-btn.is-done {
-  color: #46603c;
-  border-color: transparent;
-  background: transparent;
-}
-
-.copy-btn.is-error {
-  color: #8f2f22;
-}
-
-.copy-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-/* ---------- panels ---------- */
+/* ---------- panelen ---------- */
 
 .panels {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(28px, 4vw, 56px);
-  margin-top: clamp(36px, 5vw, 60px);
-  padding-top: clamp(28px, 4vw, 44px);
-  border-top: 1px solid var(--rule);
+  gap: clamp(18px, 2.6vw, 32px);
+  margin-top: clamp(20px, 3vw, 32px);
 }
 
 .panel {
@@ -1389,59 +1349,46 @@ select:disabled {
 
 .panel-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.panel-head .label {
-  margin-bottom: 0;
+  gap: 12px;
+  min-height: 34px;
+  margin-bottom: 10px;
 }
 
 .raw-input {
   flex: 1;
-  min-height: 420px;
+  min-height: 300px;
   height: auto;
-  padding: 26px 28px;
-  line-height: 1.72;
+  padding: 16px 18px;
+  line-height: 1.65;
   resize: vertical;
 }
 
 .output {
   flex: 1;
-  min-height: 420px;
-  padding: 26px 28px;
+  min-height: 300px;
+  padding: 16px 18px;
   background: var(--paper-raised);
   border: 1px solid var(--rule);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow-wrap: break-word;
 }
 
-.output-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 26px;
-  margin-bottom: 20px;
-}
-
 .output-ref {
-  margin: 0;
-  padding-top: 4px;
+  margin: 0 0 12px;
   font-family: var(--font-label);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 600;
-  letter-spacing: 0.17em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-muted);
 }
 
 .output-paragraph {
-  margin: 0 0 1.15em;
-  font-size: 1.12rem;
-  line-height: 1.78;
+  margin: 0 0 1em;
+  font-size: 1.06rem;
+  line-height: 1.68;
   text-align: justify;
   hyphens: auto;
 }
@@ -1456,43 +1403,34 @@ select:disabled {
   font-style: italic;
 }
 
-/* ---------- notes ---------- */
+/* ---------- voetregel ---------- */
 
-.notes {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(24px, 3vw, 44px);
-  margin-top: clamp(44px, 6vw, 72px);
-  padding-block: clamp(32px, 4vw, 48px) clamp(48px, 7vw, 88px);
+.footnote {
+  margin-top: clamp(20px, 3vw, 30px);
+  padding-block: 16px clamp(28px, 4vw, 40px);
   border-top: 1px solid var(--rule);
 }
 
-.note p:last-child {
+.footnote p {
   margin: 0;
-  font-size: 1.02rem;
-  line-height: 1.6;
-  color: var(--ink-soft);
-  max-width: 26em;
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  color: var(--ink-muted);
 }
 
 /* ---------- tablet ---------- */
 
-@media (max-width: 1080px) {
+@media (max-width: 1000px) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
-    gap: clamp(28px, 5vw, 44px);
+    gap: 18px;
+    align-items: start;
   }
 
   .hero-quote {
     max-width: 34em;
-  }
-
-  .picker {
-    grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
-  }
-
-  .settings {
-    grid-template-columns: minmax(140px, 200px) minmax(0, 1fr);
   }
 
   .panels {
@@ -1501,15 +1439,9 @@ select:disabled {
 
   .raw-input,
   .output {
-    min-height: 340px;
-  }
-
-  .notes {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 260px;
   }
 }
-
-/* ---------- small tablet / large phone ---------- */
 
 @media (max-width: 820px) {
   .picker {
@@ -1519,28 +1451,13 @@ select:disabled {
   .picker .field:first-child {
     grid-column: 1 / -1;
   }
-
-  .reference-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
-  }
-
-  .reference-row .btn {
-    width: 100%;
-  }
-
-  .stats {
-    justify-content: flex-start;
-    gap: 36px;
-    padding-bottom: 0;
-  }
 }
 
-/* ---------- phone ---------- */
+/* ---------- telefoon ---------- */
 
 @media (max-width: 560px) {
-  .masthead-inner {
-    padding-block: 16px;
+  .app {
+    --control: 52px;
   }
 
   .masthead-note {
@@ -1548,68 +1465,55 @@ select:disabled {
   }
 
   .hero {
-    padding-block: 36px 24px;
+    padding-block: 22px 18px;
   }
 
   h1 {
-    font-size: clamp(2.3rem, 11vw, 3.2rem);
+    font-size: clamp(1.9rem, 8.6vw, 2.5rem);
   }
 
-  .picker {
+  .hero-quote {
+    display: none;
+  }
+
+  .reference-row {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .settings {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: stretch;
-  }
-
-  .field-narrow input {
-    max-width: none;
-  }
-
-  .toggles {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .toggle {
-    text-align: left;
-  }
-
-  .btn {
+  .reference-row .btn {
     width: 100%;
   }
 
-  .copy-btn-text {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+  .format-row {
+    gap: 14px;
   }
 
-  .copy-btn {
-    min-width: 44px;
-    min-height: 44px;
-    justify-content: center;
-    margin: -8px -10px 0 12px;
+  .field-number {
+    width: 100%;
   }
 
-  input[type='text'],
-  input[type='number'],
-  select,
-  .btn,
-  .toggle {
-    height: 56px;
-    min-height: 56px;
+  .segment {
+    width: 100%;
+  }
+
+  .segment-options {
+    width: 100%;
+  }
+
+  .segment-options button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .console-head {
+    flex-wrap: wrap;
+    gap: 4px 12px;
   }
 
   .raw-input,
   .output {
-    min-height: 300px;
-    padding: 20px;
+    min-height: 240px;
+    padding: 14px 15px;
   }
 
   .output-paragraph {
@@ -1617,9 +1521,9 @@ select:disabled {
     hyphens: manual;
   }
 
-  .notes {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 26px;
+  .mini-btn {
+    height: 44px;
+    padding: 0 14px;
   }
 }
 
